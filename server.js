@@ -56,4 +56,4 @@ app.get('/*', function(req, res) {
 //     res.sendfile('index.html', {root: __dirname + '/client' });
 // });
 
-server.listen(3000);
+server.listen(process.env.PORT || 3000);
