@@ -30,17 +30,6 @@ var constraints;
 
 var localVideo = $('#localVideo').get(0);
 var remoteVideo = $('#remoteVideo').get(0);
-var startButton = $('#startButton').get(0);
-var callButton = $('#callButton').get(0);
-var hangupButton = $('#hangupButton').get(0);
-
-// startButton.disabled = false;
-// callButton.disabled = true;
-// hangupButton.disabled = true;
-
-// startButton.onclick = start;
-// callButton.onclick = call;
-// hangupButton.onclick = hangup;
 
 //////////////////////////////
 // Get local video stream
@@ -60,22 +49,21 @@ function gotStreamSuccess (stream) {
   console.log(stream);
   localVideo.src = URL.createObjectURL(stream);
   localStream = stream;
-  // callButton.disabled = false;
-  // Initiate the call as soon as the local stream is loaded
   call();
 }
 
 function start () {
   constraints = {video: true, audio: true};
   console.log('requesting local stream');
-  // startButton.disabled = true;
+  var room = window.location.pathname;
+
+  socket.emit('join', room);
   navigator.getUserMedia(constraints, gotStreamSuccess, errorCallback);
 }
 
 function call () {
-  // callButton.disabled = true;
-  // hangupButton.disabled = false;
   console.log('starting call');
+
   //check presence of local video and audio
   if (localStream.getVideoTracks().length > 0) {
     console.log('Using video device: ' + localStream.getVideoTracks()[0].label);
@@ -99,6 +87,7 @@ function createPeerConnection() {
   console.log("Created local peer connection object localPeerConnection");
   localPeerConnection.onicecandidate = handleIceCandidate;
   localPeerConnection.onaddstream = gotRemoteStream;
+  localPeerConnection.onremovestream = removeRemoteStream;
 }
 
 function gotLocalDescriptionBeforeOffer(description){
@@ -147,8 +136,6 @@ function hangup() {
   console.log("Ending call");
   localPeerConnection.close();
   localPeerConnection = null;
-  // hangupButton.disabled = true;
-  // callButton.disabled = false;
 }
 
 function gotRemoteStream(event){
@@ -157,6 +144,11 @@ function gotRemoteStream(event){
   remoteVideo.src = URL.createObjectURL(event.stream);
   console.log("Received remote stream");
 }
+
+function removeRemoteStream(event) {
+  console.log('closed');
+  remoteVideo.src = "";
+};
 
 function handleIceCandidate(event) {
   if (event.candidate) {
@@ -174,4 +166,6 @@ function handleIceCandidate(event) {
 };
 
 function handleError(){}
+
+start();
 
