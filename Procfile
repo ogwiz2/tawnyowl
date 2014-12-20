@@ -1,1 +1,1 @@
-web: node vidjib/server.js
+web: node server.js
