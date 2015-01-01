@@ -5,6 +5,18 @@ var querystring = require('querystring');
 var io = require('socket.io')(server);
 var path = require('path');
 
+
+
+// SERVER
+var accountSid = 'ACbd542df5518c1519e19547439867662a';
+var authToken = "c18fb66a749846755ee274324f3ce7fe";
+var client = require('twilio')(accountSid, authToken);
+var serverInfo;
+
+client.tokens.create({}, function(err, token) {
+    serverInfo = token;
+});
+
 // socket.client.conn.id
   var clientsInRoom = {};
   var clientToRoom = {};
@@ -20,8 +32,8 @@ io.on('connection', function(socket){
     var IDPacket = {};
     IDPacket.myID = socket.client.conn.id;
     IDPacket.otherIDs = clientsInRoom[room];
-    var numberOfPeopleInRoom = countClients(io.sockets.adapter.rooms[room]);
     clientToRoom[IDPacket.myID] = room;
+    IDPacket.serverInfo = serverInfo;
     console.log('clients joined', clientsInRoom[room]);
     socket.emit('joined', IDPacket);
 
@@ -83,17 +95,4 @@ app.get('/*', function(req, res) {
   res.sendFile(__dirname + '/client/index.html');
 });
 
-// app.get('/*', function(req, res){
-//     res.sendfile('index.html', {root: __dirname + '/client' });
-// });
-
 server.listen(process.env.PORT || 3000);
-
-function countClients(room) {
-  var count = 0;
-  for (var key in room) {
-    count++;
-  }
-
-  return count;
-}

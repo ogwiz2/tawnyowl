@@ -5,7 +5,8 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.10.6",
-    "socket.io": "^1.2.1"
+    "socket.io": "^1.2.1",
+    "twilio": "^1.10.0"
   },
   "devDependencies": {},
   "scripts": {
