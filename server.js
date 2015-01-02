@@ -40,12 +40,6 @@ io.on('connection', function(socket){
     clientsInRoom[room].push(IDPacket.myID);
   });
 
-  socket.on('ready', function(clientNumber) {
-    var room = socket.rooms[1];
-    console.log('sending ready');
-    socket.broadcast.to(room).emit('ready', clientNumber);
-  });
-
   socket.on('offer', function(descriptionObj) {
     var room = socket.rooms[1];
 

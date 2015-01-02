@@ -5,12 +5,6 @@
 var socket = io();
 
 ////////////////////////////////////////////////////////////
-/// Server
-////////////////////////////////////////////////////////////
-
-var serverInfo;
-
-////////////////////////////////////////////////////////////
 // Helper functions
 ////////////////////////////////////////////////////////////
 
@@ -24,7 +18,8 @@ navigator.getUserMedia = navigator.getUserMedia ||
 // Stores all localPeerConnection
 var localStream;
 var localPeerConnection = {};
-var constraints;
+var serverInfo;
+var constraints = {video: true, audio: true};
 var myID;
 var otherIDs = [];
 
@@ -47,15 +42,6 @@ socket.on('joined', function(IDPacket) {
   serverInfo = IDPacket.serverInfo;
   console.log('myID', myID);
   start();
-});
-
-// Calls connects with the client that is ready
-socket.on('ready', function(callerID) {
-  if (callerID !== 3 || clientNumber !== 2) {
-    if (localStream) {
-      console.log('calling', myID, callerID);
-    }
-  }
 });
 
 // Listen for remote client and set remote description
@@ -116,8 +102,8 @@ function call (callerID) {
 }
 
 function start() {
-  // constraints = {video: true, audio: true};
-  constraints = {video: true};
+
+  // constraints = {video: true};
 
   //joins unique room
   navigator.getUserMedia(constraints, gotStreamSuccess, errorCallback);
