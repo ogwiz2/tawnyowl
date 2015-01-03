@@ -3,8 +3,8 @@
 ////////////////////////////////////////////////////////////
 
 // var socket = io('10.8.20.245:3000');
-// var socket = io();
-var socket = io('//vidjib.herokuapp.com:3000/');
+var socket = io();
+// var socket = io('//vidjib.herokuapp.com:3000/');
 
 ////////////////////////////////////////////////////////////
 // Helper functions
