@@ -43,7 +43,7 @@ socket.on('joined', function(IDPacket) {
   otherIDs = IDPacket.otherIDs;
   serverInfo = IDPacket.serverInfo;
   console.log('myID', myID);
-  console.log('otherID', otherID);
+  console.log('otherIDs', otherIDs);
   start();
 });
 
