@@ -32,6 +32,7 @@ io.on('connection', function(socket){
     IDPacket.otherIDs = clientsInRoom[room];
     clientToRoom[IDPacket.myID] = room;
     IDPacket.serverInfo = serverInfo;
+    IDPacket.clientsInRoom = clientsInRoom;
     console.log('clients joined', clientsInRoom[room]);
     socket.emit('joined', IDPacket);
 
@@ -62,9 +63,10 @@ io.on('connection', function(socket){
   socket.on('disconnect', function() {
     var myID = socket.client.conn.id;
     var room = clientToRoom[myID];
-    // var index = clientsInRoom[room].indexOf(myID);
+    console.log('room', room);
+    var index = clientsInRoom[room].indexOf(myID);
     socket.broadcast.emit('left', myID);
-    // clientsInRoom[room].splice(index, 1);
+    clientsInRoom[room].splice(index, 1);
   });
 
 });
