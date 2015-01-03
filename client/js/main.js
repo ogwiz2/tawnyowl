@@ -2,16 +2,7 @@
 // Initializing sockets
 ////////////////////////////////////////////////////////////
 
-var socket = io();
-
-$('form').submit(function(){
-  socket.emit('message', $('#msg').val());
-  $('#msg').val('');
-  return false;
-})
-socket.on('msgtodisplay', function(msg){
-  $('ul').append($('<li>').text(msg))
-})
+var socket = io('10.8.20.245:3000');
 
 ////////////////////////////////////////////////////////////
 // Helper functions
@@ -27,7 +18,8 @@ navigator.getUserMedia = navigator.getUserMedia ||
 // Stores all localPeerConnection
 var localStream;
 var localPeerConnection = {};
-var constraints;
+var serverInfo;
+var constraints = {video: true, audio: true};
 var myID;
 var otherIDs = [];
 
@@ -47,17 +39,9 @@ socket.emit('join', room);
 socket.on('joined', function(IDPacket) {
   myID = IDPacket.myID;
   otherIDs = IDPacket.otherIDs;
+  serverInfo = IDPacket.serverInfo;
   console.log('myID', myID);
   start();
-});
-
-// Calls connects with the client that is ready
-socket.on('ready', function(callerID) {
-  if (callerID !== 3 || clientNumber !== 2) {
-    if (localStream) {
-      console.log('calling', myID, callerID);
-    }
-  }
 });
 
 // Listen for remote client and set remote description
@@ -66,6 +50,8 @@ socket.on('offer', function(descriptionObj) {
 
   // Check to make sure offer is for this client
   if (myID === descriptionObj.to) {
+
+    console.log('received offer from', callerID);
     createPeerConnection(callerID);
     localPeerConnection[callerID].addStream(localStream);
     localPeerConnection[callerID].setRemoteDescription(new RTCSessionDescription(descriptionObj.description));
@@ -116,8 +102,8 @@ function call (callerID) {
 }
 
 function start() {
-  // constraints = {video: true, audio: true};
-  constraints = {video: true};
+
+  // constraints = {video: true};
 
   //joins unique room
   navigator.getUserMedia(constraints, gotStreamSuccess, errorCallback);
@@ -145,19 +131,7 @@ function gotStreamSuccess (stream) {
 }
 
 function createPeerConnection(callerID) {
-  var STUN = {
-     url: 'stun:stun.l.google.com:19302'
-  };
-
-  var TURN = {
-     url: 'turn:homeo@turn.bistri.com:80',
-     credential: 'homeo'
-  };
-
-  var iceServers = {
-    iceServers: [STUN, TURN]
-  };
-  localPeerConnection[callerID] = new RTCPeerConnection(iceServers);
+  localPeerConnection[callerID] = new RTCPeerConnection(serverInfo);
 
   localPeerConnection[callerID].onicecandidate = function (event) {
     handleIceCandidate(event.candidate, callerID);
