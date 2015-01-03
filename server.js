@@ -62,9 +62,9 @@ io.on('connection', function(socket){
   socket.on('disconnect', function() {
     var myID = socket.client.conn.id;
     var room = clientToRoom[myID];
-    var index = clientsInRoom[room].indexOf(myID);
+    // var index = clientsInRoom[room].indexOf(myID);
     socket.broadcast.emit('left', myID);
-    clientsInRoom[room].splice(index, 1);
+    // clientsInRoom[room].splice(index, 1);
   });
 
 });
@@ -73,15 +73,19 @@ app.get('/socket.io/socket.io.js', function(req, res) {
   res.sendFile(__dirname + '/socket.io/socket.io.js');
 });
 
-app.get('/client/css/style.css', function(req, res) {
+app.get('/lib/socket.io-client/socket.io.js', function(req, res) {
+  res.sendFile(__dirname + '/client/lib/socket.io-client/socket.io.js');
+});
+
+app.get('/css/style.css', function(req, res) {
   res.sendFile(__dirname + '/client/css/style.css');
 });
 
-app.get('/client/js/adapter.js', function(req, res) {
+app.get('/js/adapter.js', function(req, res) {
   res.sendFile(__dirname + '/client/js/adapter.js');
 });
 
-app.get('/client/js/main.js', function(req, res) {
+app.get('/js/main.js', function(req, res) {
   res.sendFile(__dirname + '/client/js/main.js');
 });
 
