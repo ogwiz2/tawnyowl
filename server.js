@@ -71,6 +71,14 @@ io.on('connection', function(socket){
 
 });
 
+
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  return next();
+});
+
 app.get('/socket.io/socket.io.js', function(req, res) {
   res.sendFile(__dirname + '/socket.io/socket.io.js');
 });

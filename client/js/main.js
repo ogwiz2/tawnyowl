@@ -4,7 +4,7 @@
 
 // var socket = io('10.8.20.245:3000');
 var socket = io();
-// var socket = io.connect('http://vidjib.herokuapp.com:45002/lib/socket.io-client');
+// var socket = io.connect('http://vidjib.herokuapp.com/socket.io:30589');
 
 ////////////////////////////////////////////////////////////
 // Helper functions
