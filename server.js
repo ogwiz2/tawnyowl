@@ -1,7 +1,6 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-var querystring = require('querystring');
 var io = require('socket.io')(server);
 var path = require('path');
 
@@ -12,6 +11,8 @@ var accountSid = 'ACbd542df5518c1519e19547439867662a';
 var authToken = "c18fb66a749846755ee274324f3ce7fe";
 var client = require('twilio')(accountSid, authToken);
 var serverInfo;
+
+io.set('origins', '*:*');
 
 client.tokens.create({}, function(err, token) {
     serverInfo = token;
