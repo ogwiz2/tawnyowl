@@ -3,8 +3,8 @@
 ////////////////////////////////////////////////////////////
 
 // var socket = io('10.8.20.245:3000');
-var socket = io();
-// var socket = io('54.235.124.102');
+// var socket = io();
+var socket = io('//vidjib.herokuapp.com:3000/');
 
 ////////////////////////////////////////////////////////////
 // Helper functions
@@ -44,6 +44,10 @@ socket.on('joined', function(IDPacket) {
   serverInfo = IDPacket.serverInfo;
   console.log('myID', myID);
   start();
+});
+
+socket.on('PORT', function(port) {
+  console.log('port', port);
 });
 
 // Listen for remote client and set remote description

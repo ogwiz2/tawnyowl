@@ -24,7 +24,6 @@ client.tokens.create({}, function(err, token) {
 io.on('connection', function(socket){
 
   socket.on('join', function(room) {
-
     if (!clientsInRoom[room]) {
       clientsInRoom[room] = [];
     }
@@ -40,6 +39,8 @@ io.on('connection', function(socket){
 
     clientsInRoom[room].push(IDPacket.myID);
   });
+
+  socket.emit('PORT', process.env.PORT);
 
   socket.on('offer', function(descriptionObj) {
     var room = socket.rooms[1];
