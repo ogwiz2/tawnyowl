@@ -4,7 +4,7 @@
 
 // var socket = io('10.8.20.245:3000');
 var socket = io();
-// var socket = io.connect('http://vidjib.herokuapp.com/socket.io:30589');
+// var socket = io.connect({http: 'http://vidjib.herokuapp.com:43022'});
 
 ////////////////////////////////////////////////////////////
 // Helper functions
@@ -43,6 +43,7 @@ socket.on('joined', function(IDPacket) {
   otherIDs = IDPacket.otherIDs;
   serverInfo = IDPacket.serverInfo;
   console.log('myID', myID);
+  console.log('otherID', otherID);
   start();
 });
 

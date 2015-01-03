@@ -4,8 +4,6 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var path = require('path');
 
-
-
 // SERVER
 var accountSid = 'ACbd542df5518c1519e19547439867662a';
 var authToken = "c18fb66a749846755ee274324f3ce7fe";
