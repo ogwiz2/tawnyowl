@@ -12,9 +12,7 @@ var authToken = "c18fb66a749846755ee274324f3ce7fe";
 var client = require('twilio')(accountSid, authToken);
 var serverInfo;
 
-io.configure('development', function(){
-    io.set('origins', '*:*');
-}
+io.set('origins', '*:*');
 
 client.tokens.create({}, function(err, token) {
     serverInfo = token;
