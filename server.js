@@ -5,8 +5,6 @@ var querystring = require('querystring');
 var io = require('socket.io')(server);
 var path = require('path');
 
-
-
 // SERVER
 var accountSid = 'ACbd542df5518c1519e19547439867662a';
 var authToken = "c18fb66a749846755ee274324f3ce7fe";
@@ -19,7 +17,7 @@ client.tokens.create({}, function(err, token) {
 
 // socket.client.conn.id
   var clientsInRoom = {};
-  var clientToRoom = {};
+  var clientsToRoom = {};
 io.on('connection', function(socket){
 
   socket.on('join', function(room) {
@@ -32,7 +30,7 @@ io.on('connection', function(socket){
     var IDPacket = {};
     IDPacket.myID = socket.client.conn.id;
     IDPacket.otherIDs = clientsInRoom[room];
-    clientToRoom[IDPacket.myID] = room;
+    clientsToRoom[IDPacket.myID] = room;
     IDPacket.serverInfo = serverInfo;
     console.log('clients joined', clientsInRoom[room]);
     socket.emit('joined', IDPacket);
@@ -47,10 +45,24 @@ io.on('connection', function(socket){
     socket.broadcast.to(room).emit('offer', descriptionObj); //change to broadcast
   });
 
-  socket.on('answer', function(description) {
+  socket.on('answer', function(descriptionObj) {
     var room = socket.rooms[1];
     // console.log('answer', room);
-    socket.broadcast.to(room).emit('answer', description);
+    socket.broadcast.to(room).emit('answer', descriptionObj);
+  });
+
+
+  socket.on('tempOffer', function(descriptionObj) {
+    var room = socket.rooms[1];
+    // console.log('answer', room);
+    socket.broadcast.to(room).emit('tempOffer', descriptionObj);
+  });
+
+  socket.on('tempAnswer', function(descriptionObj) {
+    var room = socket.rooms[1];
+    console.log('tempAnswer');
+    // console.log('answer', room);
+    socket.broadcast.to(room).emit('tempAnswer', descriptionObj);
   });
 
   socket.on('candidate', function(candidate) {
@@ -61,10 +73,18 @@ io.on('connection', function(socket){
 
   socket.on('disconnect', function() {
     var myID = socket.client.conn.id;
-    var room = clientToRoom[myID];
+    var room = clientsToRoom[myID];
+
+    console.log("Before ERROR");
+    console.log('socket', socket.client.conn.id);
+    console.log('clientsInRoom', clientsInRoom);
+    console.log('clientsToRoom', clientsToRoom);
+    console.log('room', room);
+
     // var index = clientsInRoom[room].indexOf(myID);
     socket.broadcast.emit('left', myID);
     // clientsInRoom[room].splice(index, 1);
+    console.log('clientsInRoom AFTER', clientsInRoom);
   });
 
 });

@@ -19,11 +19,31 @@ navigator.getUserMedia = navigator.getUserMedia ||
 var localStream;
 var localPeerConnection = {};
 var serverInfo;
-var constraints = {video: true, audio: true};
+
+var constraints = {video: true, audio: false};
+var dataChannelOptions ={
+  ordered: false,
+  maxRetransmitTime: 3000
+};
+var dataChannel = {};
+// var constraints = {video: true, audio: true};
 var myID;
 var otherIDs = [];
+var otherIDsWithIce = [];
 
 var localVideo = $('#localVideo').get(0);
+var myDescriptionObj;
+var optionalRtpDataChannels = {
+    optional: [{
+        RtpDataChannels: true
+    }]
+};
+var sdpConstraints = {
+   mandatory: {
+     'OfferToReceiveAudio': false,
+     'OfferToReceiveVideo': false
+   }
+ };
 
 //////////////////////////////
 // Get local video stream
@@ -41,19 +61,22 @@ socket.on('joined', function(IDPacket) {
   otherIDs = IDPacket.otherIDs;
   serverInfo = IDPacket.serverInfo;
   console.log('myID', myID);
+
   start();
 });
 
 // Listen for remote client and set remote description
 socket.on('offer', function(descriptionObj) {
   var callerID = descriptionObj.from;
+  myDescriptionObj = descriptionObj;
 
   // Check to make sure offer is for this client
   if (myID === descriptionObj.to) {
 
     console.log('received offer from', callerID);
     createPeerConnection(callerID);
-    localPeerConnection[callerID].addStream(localStream);
+
+    console.log('Offer received', descriptionObj);
     localPeerConnection[callerID].setRemoteDescription(new RTCSessionDescription(descriptionObj.description));
 
     localPeerConnection[callerID].createAnswer(function(description) {
@@ -62,12 +85,34 @@ socket.on('offer', function(descriptionObj) {
   }
 });
 
+// socket.on('tempOffer', function(descriptionObj) {
+
+//   if (descriptionObj.to === myID) {
+//     var callerID = descriptionObj.from;
+//     console.log('tempOffer received', descriptionObj);
+//     localPeerConnection[callerID].addStream(localStream);
+//     localPeerConnection[callerID].setRemoteDescription(new RTCSessionDescription(descriptionObj.description));
+//     myDescriptionObj.to = callerID;
+//     socket.emit('tempAnswer', myDescriptionObj);
+//   }
+// });
+
+// socket.on('tempAnswer', function(descriptionObj) {
+//   console.log('tempAnswer');
+//   if (descriptionObj.to === myID) {
+//     var callerID = descriptionObj.from;
+//     console.log('tempAnswer received', descriptionObj);
+//     localPeerConnection[callerID].setRemoteDescription(new RTCSessionDescription(descriptionObj.description));
+//   }
+// });
+
 // Set remote description from remote peer
 socket.on('answer', function(descriptionObj) {
-
   // Check if message is for this client
   if (descriptionObj.to === myID) {
     var callerID = descriptionObj.from;
+    console.log('answer from', descriptionObj);
+    console.log('setting remote description', descriptionObj);
     localPeerConnection[callerID].setRemoteDescription(new RTCSessionDescription(descriptionObj.description));
   }
 });
@@ -78,6 +123,8 @@ socket.on('candidate', function(candidateObj) {
 
   // Check if message is for this client
   if (myID === candidateObj.to) {
+
+    console.log('receiving candidate info from', callerID);
     var candidate = new RTCIceCandidate({
       sdpMLineIndex: candidateObj.label,
       candidate: candidateObj.candidate
@@ -92,18 +139,7 @@ socket.on('left', function(callerID) {
   $('#' + callerID).remove();
 });
 
-function call (callerID) {
-  console.log('starting call', callerID);
-  createPeerConnection(callerID);
-  localPeerConnection[callerID].addStream(localStream);
-  localPeerConnection[callerID].createOffer(function(description) {
-      createDescription(description, callerID, 'offer');
-    }, handleError);
-}
-
 function start() {
-
-  // constraints = {video: true};
 
   //joins unique room
   navigator.getUserMedia(constraints, gotStreamSuccess, errorCallback);
@@ -128,10 +164,43 @@ function gotStreamSuccess (stream) {
   for (var i = 0; i < otherIDs.length; i++) {
     call(otherIDs[i]);
   }
+
 }
 
+function call(callerID) {
+  console.log('starting call', callerID, localPeerConnection);
+  createPeerConnection(callerID);
+  localPeerConnection[callerID].addStream(localStream);
+  console.log('added stream', localPeerConnection[callerID].addStream);
+
+  localPeerConnection[callerID].createOffer(function(description) {
+      createDescription(description, callerID, 'offer');
+    }, handleError);
+
+}
+
+var count = 0;
+
 function createPeerConnection(callerID) {
-  localPeerConnection[callerID] = new RTCPeerConnection(serverInfo);
+  console.log('creating peer connection with', callerID);
+  localPeerConnection[callerID] = new RTCPeerConnection(serverInfo, optionalRtpDataChannels);
+  dataChannel[callerID] = localPeerConnection[callerID].createDataChannel('RTCDataChannel', {reliable: false});
+
+  dataChannel[callerID].onerror = function(error) {
+    console.log('Data Channel Error', error);
+  }
+
+  dataChannel[callerID].onmessage = function(event) {
+    console.log('Got Data Channel Message', event.data);
+  }
+
+  dataChannel[callerID].onopen = function(event) {
+    dataChannel[callerID].send('Connected with other Peer');
+  }
+
+  dataChannel[callerID].onclose = function(event) {
+    console.log('Data Channel is closed');
+  }
 
   localPeerConnection[callerID].onicecandidate = function (event) {
     handleIceCandidate(event.candidate, callerID);
@@ -139,9 +208,11 @@ function createPeerConnection(callerID) {
 
   // localPeerConnection[callerID].onnegotiationneeded = negotiationneeded;
   localPeerConnection[callerID].onaddstream = function gotRemoteStream(event){
+    console.log('firing remote stream');
     createRemoteVideo(event.stream, callerID);
   };
   localPeerConnection[callerID].onremovestream = removeRemoteStream;
+
 }
 
 function createRemoteVideo(remoteStream, callerID) {
@@ -155,6 +226,8 @@ function createRemoteVideo(remoteStream, callerID) {
 }
 
 function createDescription(description, callerID, offerOrAnswer) {
+  console.log('creating', offerOrAnswer);
+    console.log('setting local description');
   localPeerConnection[callerID].setLocalDescription(description);
   var descriptionObj = {
     description: description,
@@ -162,11 +235,14 @@ function createDescription(description, callerID, offerOrAnswer) {
     to: callerID
   };
 
+  myDescriptionObj = descriptionObj;
   socket.emit(offerOrAnswer, descriptionObj);
 }
 
 function handleIceCandidate(candidate, callerID) {
-  if (event.candidate) {
+
+  console.log('sending ice candidate info to ', callerID);
+  if (candidate) {
     var candidateObj = {
       label: candidate.sdpMLineIndex,
       from: myID,
